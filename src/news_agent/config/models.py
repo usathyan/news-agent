@@ -1,5 +1,5 @@
 from typing import Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class LLMConfig(BaseModel):
@@ -37,13 +37,11 @@ class RankingWeights(BaseModel):
     relevance: float = Field(default=0.7, ge=0.0, le=1.0)
     popularity: float = Field(default=0.3, ge=0.0, le=1.0)
 
-    @field_validator('popularity')
-    @classmethod
-    def check_weights_sum(cls, v: float, info) -> float:
-        relevance = info.data.get('relevance', 0.7)
-        if abs(relevance + v - 1.0) > 0.01:
+    @model_validator(mode='after')
+    def check_weights_sum(self) -> 'RankingWeights':
+        if abs(self.relevance + self.popularity - 1.0) > 0.01:
             raise ValueError("Weights must sum to 1.0")
-        return v
+        return self
 
 
 class RankingConfig(BaseModel):
