@@ -1,0 +1,40 @@
+[llm]
+provider = "anthropic"
+model = "claude-3-5-sonnet-20241022"
+api_key_env = "ANTHROPIC_API_KEY"
+
+[analysis]
+depth = "medium"
+top_n = 25
+
+[sources.github]
+enabled = true
+mcp_server = "remote"
+categories = ["repositories", "developers"]
+
+[sources.hackernews]
+enabled = true
+mcp_server = "local"
+endpoints = ["newest", "show"]
+filter_topics = ["AI", "ML", "GenAI", "LLM", "machine learning"]
+
+[ranking]
+strategy = "balanced"
+
+[ranking.weights]
+relevance = 0.7
+popularity = 0.3
+
+[caching]
+enabled = true
+ttl_hours = 1
+
+[output]
+format = "markdown"
+save_path = "./reports"
+terminal_preview = true
+
+[retry]
+max_attempts = 3
+backoff_multiplier = 2
+graceful_degradation = true

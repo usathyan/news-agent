@@ -1,0 +1,42 @@
+[project]
+name = "news-agent"
+version = "0.1.0"
+description = "AI-powered news aggregation agent with MCP integrations"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.18.0",
+    "litellm>=1.30.0",
+    "rich>=13.7.0",
+    "tomli>=2.0.1",
+    "tomli-w>=1.0.0",
+    "httpx>=0.27.0",
+    "click>=8.1.7",
+    "pydantic>=2.6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+]
+
+[project.scripts]
+news-agent = "news_agent.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+strict = true
