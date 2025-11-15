@@ -54,23 +54,114 @@ def run(
     verbose: bool
 ) -> None:
     """Run the news agent to collect and analyze content"""
+    from datetime import datetime
+    import sys
+
     # Load environment variables
     load_dotenv()
 
+    from news_agent.config.loader import load_config
+    from news_agent.config.models import AnalysisConfig
+    from news_agent.llm.provider import LLMProvider
+    from news_agent.cache.manager import CacheManager
+    from news_agent.mcp.github_client import GitHubMCPClient
+    from news_agent.mcp.hn_client import HackerNewsMCPClient
+    from news_agent.analysis.relevance import RelevanceScorer
+    from news_agent.analysis.ranking import Ranker
+    from news_agent.agent.tools import ToolRegistry
+    from news_agent.agent.react_agent import NewsAgent
     from news_agent.output.terminal import TerminalDisplay
+    from news_agent.output.markdown import MarkdownGenerator
 
     display = TerminalDisplay()
-    display.show_progress("Loading configuration...")
 
-    # TODO: Implement agent orchestration
-    # This will be implemented in Task 14 (Agent Integration)
+    try:
+        # Load configuration
+        display.show_progress("Loading configuration...")
+        cfg = load_config(config)
 
-    if dry_run:
-        display.show_warning("Dry run mode - no data will be fetched")
-        display.show_progress("Would fetch from sources: github, hackernews")
-        return
+        # Apply overrides
+        if depth:
+            cfg.analysis.depth = depth  # type: ignore
 
-    display.show_error("Agent implementation pending (Task 14)")
+        if dry_run:
+            display.show_warning("Dry run mode - no data will be fetched")
+            display.show_progress(f"Would fetch from sources: {', '.join(s for s in ['github', 'hackernews'] if getattr(cfg.sources, s.replace('hackernews', 'hackernews')).enabled)}")
+            return
+
+        # Initialize components
+        display.show_progress("Initializing components...")
+
+        llm_provider = LLMProvider(cfg.llm)
+        cache_manager = CacheManager(Path(".cache/news-agent"), cfg.caching)
+
+        if no_cache:
+            display.show_progress("Clearing cache (--no-cache flag)")
+            cache_manager.clear()
+
+        github_client = GitHubMCPClient(cfg.sources.github)
+        hn_client = HackerNewsMCPClient(cfg.sources.hackernews)
+
+        relevance_scorer = RelevanceScorer(llm_provider, cfg.analysis)
+        ranker = Ranker(cfg.ranking)
+
+        tool_registry = ToolRegistry(
+            github_client,
+            hn_client,
+            relevance_scorer,
+            ranker,
+            cache_manager
+        )
+
+        # Create agent
+        agent = NewsAgent(cfg, tool_registry, llm_provider)
+
+        # Run agent
+        display.show_progress("Running news agent...")
+        results = agent.run(no_cache=no_cache)
+
+        # Display preview
+        if cfg.output.terminal_preview:
+            if results["github_repos"]:
+                display.show_github_preview(results["github_repos"])
+
+            if results["hn_posts"]:
+                display.show_hn_preview(results["hn_posts"])
+
+        # Generate markdown report
+        display.show_progress("Generating markdown report...")
+        markdown_gen = MarkdownGenerator()
+        report_content = markdown_gen.generate_report(results)
+
+        # Determine output path
+        if output:
+            output_path = output
+        else:
+            reports_dir = Path(cfg.output.save_path)
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y-%m-%d")
+            output_path = reports_dir / f"report-{timestamp}.md"
+
+        # Save report
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(report_content)
+
+        # Show summary
+        display.show_summary({
+            "github_count": len(results["github_repos"]),
+            "hn_count": len(results["hn_posts"]),
+            "depth": cfg.analysis.depth,
+            "report_path": str(output_path)
+        })
+
+        display.show_success(f"Report saved to: {output_path}")
+
+    except Exception as e:
+        display.show_error(f"Error: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 
 def main() -> None:
