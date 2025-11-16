@@ -242,32 +242,84 @@ project_name = "news-agent"         # Project name in telemetry backend
 
 ### Telemetry & Observability
 
-The news agent includes built-in LangSmith integration for observability:
+The news agent includes built-in LangSmith integration for full observability of agent execution and LLM calls.
 
-**What's Tracked:**
-- All LLM calls (prompts, responses, token usage)
-- Relevance scoring decisions
-- API latency and performance metrics
-- Errors and retries
+**Automatic Tracing Setup:**
+```bash
+# Simply add your LangSmith API key to .env
+LANGSMITH_API_KEY=your_api_key_here
+
+# Run the agent - tracing happens automatically
+news-agent --verbose
+```
+
+**What's Traced:**
+- **Agent Execution**: Main workflow trace (`news_agent_run`)
+  - GitHub data collection phase
+  - Hacker News data collection phase
+  - Relevance scoring phase
+  - Ranking phase
+- **LLM Calls**: Individual prompt/completion calls
+  - Relevance scoring prompts
+  - Token usage and costs
+  - API latency and response times
+- **Data Flow**: Complete execution hierarchy from agent to LLM calls
+
+**Trace Types Recorded:**
+
+1. **Root Trace**: `news_agent_run`
+   - Captures the entire agent execution
+   - Shows overall execution time and status
+   - Parent trace for all child spans
+
+2. **Phase Traces**: `collect_github_data`, `collect_hn_data`
+   - Data collection spans
+   - API call details
+   - Data transformation steps
+
+3. **LLM Traces**: LiteLLM wrapped completions
+   - Prompt text and parameters
+   - Token counts (input/output/total)
+   - Model and provider used
+   - Response latency
 
 **Viewing Traces:**
 ```bash
-# Open LangSmith dashboard
+# Open LangSmith dashboard (one-click)
 make langsmith
 
-# Or visit directly: https://smith.langchain.com
+# Or visit: https://smith.langchain.com/
+# Then navigate to project: "news-agent"
+```
+
+**Example Trace Structure in LangSmith:**
+```
+news_agent_run (Root)
+├── collect_github_data
+│   ├── GitHub API call
+│   └── Data processing
+├── collect_hn_data
+│   ├── HN API call (multiple posts)
+│   └── Data aggregation
+├── score_relevance (Relevance Scoring)
+│   └── llm_complete (7 LLM calls for batch scoring)
+│       ├── Call 1: Score batch of 5 posts
+│       ├── Call 2: Score batch of 5 posts
+│       └── Call 3: Score batch of 5 posts
+└── rank_items (Ranking)
 ```
 
 **Configuration:**
-- Set `LANGSMITH_API_KEY` in `.env` to enable telemetry
-- Traces appear in the "news-agent" project
+- Automatic: Set `LANGSMITH_API_KEY` in `.env` - tracing enables automatically
+- Project: Traces appear in "news-agent" project (configurable via `LANGSMITH_PROJECT`)
 - Optional: Set `telemetry.enabled = false` in `config.toml` to disable
 
 **Benefits:**
-- Debug LLM responses and prompt engineering
-- Track token costs and usage patterns
-- Monitor performance and identify bottlenecks
-- Analyze relevance scoring accuracy
+- 🔍 **Debug LLM responses**: See exact prompts and responses in traces
+- 💰 **Track costs**: Monitor token usage by operation
+- ⏱️ **Performance analysis**: Identify bottlenecks and slow operations
+- 📊 **Relevance tuning**: Understand how AI scoring decisions are made
+- 🔄 **Workflow visibility**: See complete execution flow and dependencies
 
 ## Development
 
