@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+from langsmith import traceable
 from news_agent.config.models import Config
 from news_agent.agent.tools import ToolRegistry
 from news_agent.llm.provider import LLMProvider
@@ -23,6 +24,7 @@ class NewsAgent:
         # TODO: Initialize Claude Agent SDK client
         # This will use the SDK's MCP integration
 
+    @traceable
     def run(self, no_cache: bool = False) -> dict[str, Any]:
         """Execute the news aggregation workflow
 
@@ -52,6 +54,7 @@ class NewsAgent:
 
         return results
 
+    @traceable
     def _collect_github_data(self, no_cache: bool) -> list[dict[str, Any]]:
         """Collect and analyze GitHub trending data"""
         logger.info("🔍 Starting GitHub data collection...")
@@ -73,6 +76,7 @@ class NewsAgent:
         logger.info(f"📊 Selected top {len(top_repos)} repositories for report")
         return top_repos
 
+    @traceable
     def _collect_hn_data(self, no_cache: bool) -> list[dict[str, Any]]:
         """Collect and analyze Hacker News data"""
         logger.info("🔍 Starting Hacker News data collection...")

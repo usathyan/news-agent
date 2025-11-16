@@ -2,6 +2,7 @@ import os
 import logging
 from typing import Any, List, Dict
 import litellm
+from langsmith import traceable
 from litellm import completion
 from litellm.exceptions import (
     AuthenticationError,
@@ -51,6 +52,7 @@ class LLMProvider:
 
         logger.info(f"Initialized LLM provider: {config.provider} with model: {self.model}")
 
+    @traceable
     def complete(
         self,
         messages: List[Dict[str, Any]],
