@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Any
 from news_agent.llm.provider import LLMProvider
 from news_agent.config.models import AnalysisConfig
@@ -28,9 +29,36 @@ class RelevanceScorer:
         ]
 
         response = self.llm.complete_json(messages, temperature=0.3)
-        result = json.loads(response)
+        result = self._extract_json(response)
 
         return float(result.get("relevance_score", 0.0))
+
+    def _extract_json(self, text: str) -> dict[str, Any]:
+        """Extract JSON from text, handling markdown code blocks and extra text"""
+        # Try to parse as-is first
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+
+        # Try to extract from markdown code block
+        json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group(1))
+            except json.JSONDecodeError:
+                pass
+
+        # Try to find JSON object in text
+        brace_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if brace_match:
+            try:
+                return json.loads(brace_match.group(0))
+            except json.JSONDecodeError:
+                pass
+
+        # Fallback: return default
+        return {"relevance_score": 0.0, "reasoning": "Failed to parse response", "key_topics": []}
 
     def _build_relevance_prompt(self, post: dict[str, Any], topics: list[str]) -> str:
         """Build prompt for relevance scoring"""
