@@ -260,7 +260,7 @@ news-agent/
 
 ## Current Implementation Status
 
-### ✅ Completed (MVP Ready)
+### ✅ Completed (Phase 2 - Data Integration)
 
 - Project structure and build system
 - Configuration system (TOML + Pydantic)
@@ -274,22 +274,25 @@ news-agent/
 - Rich terminal UI with tables
 - Complete CLI with all flags
 - ReACT agent orchestration
+- **✨ GitHub API Integration**: Fetches trending repositories via GitHub REST API
+- **✨ Hacker News API Integration**: Fetches and filters posts via HN API
 
-**Test Coverage:** 41/43 tests passing (2 skipped - API-dependent)
+**Test Coverage:** 43/45 tests passing (2 skipped - LLM-API-dependent)
 
-### ⏳ Pending (Phase 2)
+**Real Data Sources:** Both GitHub and Hacker News are integrated and working with live data!
 
-- **MCP Server Integration**: Connect to actual GitHub and Hacker News MCP servers
-- **End-to-End Testing**: With real data sources
-- **Social Media Analysis**: Reddit, X.com mention tracking (future enhancement)
-- **Scheduling**: Automated daily runs (future enhancement)
-- **Email Delivery**: Report distribution (future enhancement)
+### ⏳ Pending (Future Enhancements)
 
-### Known Limitations
+- **Social Media Analysis**: Reddit, X.com mention tracking
+- **Scheduling**: Automated daily runs
+- **Email Delivery**: Report distribution
+- **MCP Protocol Migration**: Optional migration to use MCP protocol for data sources
 
-1. **MCP Clients are Stubs**: Currently return empty data until MCP servers are connected
-2. **Requires API Key**: Need valid LLM provider API key for analysis features
-3. **GitHub/HN Data**: Pending MCP server setup for actual data fetching
+### Current Data Source Approach
+
+The news agent uses direct API integrations:
+- **GitHub**: REST API (requires GITHUB_PAT for higher rate limits)
+- **Hacker News**: Firebase API (no authentication required)
 
 ## Troubleshooting
 

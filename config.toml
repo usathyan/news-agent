@@ -1,6 +1,6 @@
 [llm]
 provider = "openrouter"
-model = "anthropic/claude-3.5-sonnet"
+model = "openrouter/anthropic/claude-3.5-sonnet"
 api_key_env = "OPENROUTER_API_KEY"
 
 [analysis]

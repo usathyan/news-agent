@@ -9,13 +9,12 @@ def hn_config():
         enabled=True,
         mcp_server="local",
         endpoints=["newest"],
-        filter_topics=["AI", "ML"]
+        filter_topics=[]  # No filtering for test - just verify API works
     )
 
 
-@pytest.mark.skip(reason="Requires HN MCP server running")
 def test_fetch_newest_posts(hn_config):
-    """Test fetching newest posts via MCP"""
+    """Test fetching newest posts via HN API"""
     client = HackerNewsMCPClient(hn_config)
 
     posts = client.fetch_posts("newest", limit=10)

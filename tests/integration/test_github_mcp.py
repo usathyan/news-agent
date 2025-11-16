@@ -12,7 +12,6 @@ def github_config():
     )
 
 
-@pytest.mark.skip(reason="Requires GitHub MCP server running")
 def test_fetch_trending_repositories(github_config):
     """Test fetching trending repositories via MCP"""
     client = GitHubMCPClient(github_config)
