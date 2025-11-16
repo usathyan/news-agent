@@ -56,9 +56,20 @@ def run(
     """Run the news agent to collect and analyze content"""
     from datetime import datetime
     import sys
+    import logging
 
     # Load environment variables
     load_dotenv()
+
+    # Configure logging based on verbose flag
+    if verbose:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(message)s',  # Simple format for clean output
+            force=True  # Override any existing configuration
+        )
+    else:
+        logging.basicConfig(level=logging.WARNING, force=True)
 
     from news_agent.config.loader import load_config
     from news_agent.config.models import AnalysisConfig
