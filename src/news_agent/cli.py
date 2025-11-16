@@ -62,6 +62,10 @@ def run(
     # Load environment variables
     load_dotenv()
 
+    # Enable LangSmith tracing if API key is configured
+    if os.getenv("LANGSMITH_API_KEY"):
+        os.environ["LANGSMITH_TRACING"] = "true"
+
     # Configure logging based on verbose flag
     if verbose:
         logging.basicConfig(
@@ -128,23 +132,9 @@ def run(
         # Create agent
         agent = NewsAgent(cfg, tool_registry, llm_provider)
 
-        # Run agent with LangSmith tracing if configured
+        # Run agent (LangSmith tracing is enabled via LANGSMITH_TRACING env var if configured)
         display.show_progress("Running news agent...")
-
-        # Check if LangSmith is configured
-        langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
-        langsmith_project = os.getenv("LANGSMITH_PROJECT", "news-agent")
-
-        if langsmith_api_key:
-            # Import here to avoid dependency if not using telemetry
-            from langsmith.run_helpers import tracing_context
-
-            # Run within LangSmith trace context
-            with tracing_context(project_name=langsmith_project):
-                results = agent.run(no_cache=no_cache)
-        else:
-            # Run without tracing
-            results = agent.run(no_cache=no_cache)
+        results = agent.run(no_cache=no_cache)
 
         # Display preview
         if cfg.output.terminal_preview:
