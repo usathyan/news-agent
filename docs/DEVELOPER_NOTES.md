@@ -53,36 +53,32 @@ News Agent is an AI-powered news aggregation tool that:
 
 ### System Design
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      News Agent CLI                         │
-│  (click-based command-line interface)                       │
-└────────────────┬────────────────────────────────────────────┘
-                 │
-        ┌────────▼────────┐
-        │ ReACT Agent     │  Orchestrates the workflow
-        │ (react_agent.py)│
-        └────────┬────────┘
-                 │
-    ┌────────────┼────────────┐
-    │            │            │
-    ▼            ▼            ▼
-┌─────────┐ ┌──────────┐ ┌──────────┐
-│ GitHub  │ │Hacker    │ │Relevance │
-│ Client  │ │News      │ │Scorer    │
-│         │ │Client    │ │          │
-└────┬────┘ └────┬─────┘ └────┬─────┘
-     │           │            │
-     │     ┌─────▼─────┐     │
-     └────▶│  Ranker   │◀────┘
-           │           │
-           └─────┬─────┘
-                 │
-           ┌─────▼──────┐
-           │Output      │
-           │(Markdown   │
-           │& Terminal) │
-           └────────────┘
+```mermaid
+graph TD
+    CLI["📋 News Agent CLI"]
+    AGENT["🤖 ReACT Agent"]
+    GH["🔗 GitHub Client"]
+    HN["📰 Hacker News Client"]
+    SCORER["🎯 Relevance Scorer"]
+    RANKER["📊 Ranker"]
+    OUTPUT["📄 Output"]
+
+    CLI --> AGENT
+    AGENT --> GH
+    AGENT --> HN
+    AGENT --> SCORER
+    GH --> RANKER
+    HN --> RANKER
+    SCORER --> RANKER
+    RANKER --> OUTPUT
+
+    style CLI fill:#e1f5ff
+    style AGENT fill:#f3e5f5
+    style GH fill:#e8f5e9
+    style HN fill:#e8f5e9
+    style SCORER fill:#fff3e0
+    style RANKER fill:#fce4ec
+    style OUTPUT fill:#f1f8e9
 ```
 
 ### Component Breakdown
@@ -168,16 +164,25 @@ Format markdown report → Display terminal preview → Save to file
 ### Data Collection Details
 
 #### GitHub Data Flow
-```python
-GitHub API (REST)
-    ↓
-Get trending repos (search by language)
-    ↓
-Extract: stars, forks, language, description
-    ↓
-Cache with 1-hour TTL
-    ↓
-Return list of ~25 repos
+
+```mermaid
+graph LR
+    API["🔌 GitHub API<br/>REST v3"]
+    SEARCH["🔍 Search Trending<br/>by language"]
+    EXTRACT["📦 Extract Data<br/>stars, forks, etc"]
+    CACHE["💾 Cache<br/>TTL: 1 hour"]
+    RETURN["✅ Return<br/>~25 repos"]
+
+    API --> SEARCH
+    SEARCH --> EXTRACT
+    EXTRACT --> CACHE
+    CACHE --> RETURN
+
+    style API fill:#e8f5e9
+    style SEARCH fill:#c8e6c9
+    style EXTRACT fill:#a5d6a7
+    style CACHE fill:#81c784
+    style RETURN fill:#66bb6a
 ```
 
 **What we fetch:**
@@ -189,16 +194,25 @@ Return list of ~25 repos
 **Filtering:** Language-based (software repos only)
 
 #### Hacker News Data Flow
-```python
-HN Firebase API
-    ↓
-Get top/newest posts (configurable)
-    ↓
-Filter by topic keywords (AI, ML, GenAI, LLM, etc.)
-    ↓
-Cache with TTL
-    ↓
-Return filtered posts with scores
+
+```mermaid
+graph LR
+    API["🔥 HN Firebase API"]
+    FETCH["📥 Fetch Posts<br/>top/newest/show"]
+    FILTER["🎯 Filter Topics<br/>AI, ML, GenAI, LLM"]
+    CACHE["💾 Cache<br/>TTL: 1 hour"]
+    RETURN["✅ Return<br/>filtered posts"]
+
+    API --> FETCH
+    FETCH --> FILTER
+    FILTER --> CACHE
+    CACHE --> RETURN
+
+    style API fill:#fff3e0
+    style FETCH fill:#ffe0b2
+    style FILTER fill:#ffcc80
+    style CACHE fill:#ffb74d
+    style RETURN fill:#ffa726
 ```
 
 **What we fetch:**
@@ -210,16 +224,34 @@ Return filtered posts with scores
 
 ### Relevance Scoring Process
 
-```
-Batch of 5 items
-    ↓
-LLM Prompt: "Rate relevance 0-10: {item.title} {item.description}"
-    ↓
-Parse LLM response → Score 0-10
-    ↓
-Store with metadata
-    ↓
-Next batch (repeat until all scored)
+```mermaid
+graph LR
+    BATCH["📦 Batch of 5<br/>items"]
+    PROMPT["💭 LLM Prompt<br/>Rate 0-10"]
+    PARSE["🔍 Parse<br/>response"]
+    SCORE["⭐ Score<br/>0-10"]
+    STORE["💾 Store with<br/>metadata"]
+    CHECK{"All items<br/>scored?"}
+    NEXT["➡️ Next batch"]
+    DONE["✅ Done"]
+
+    BATCH --> PROMPT
+    PROMPT --> PARSE
+    PARSE --> SCORE
+    SCORE --> STORE
+    STORE --> CHECK
+    CHECK -->|No| NEXT
+    NEXT --> BATCH
+    CHECK -->|Yes| DONE
+
+    style BATCH fill:#f3e5f5
+    style PROMPT fill:#e1bee7
+    style PARSE fill:#ce93d8
+    style SCORE fill:#ba68c8
+    style STORE fill:#ab47bc
+    style CHECK fill:#9c27b0
+    style NEXT fill:#ba68c8
+    style DONE fill:#66bb6a
 ```
 
 **Scoring Batches:**
@@ -238,17 +270,297 @@ Next batch (repeat until all scored)
 
 ### 1. ReACT Agent (src/news_agent/agent/react_agent.py)
 
-**Purpose**: Orchestrates the complete workflow
+**Purpose**: Orchestrates the complete workflow using the ReACT pattern (Reasoning + Acting)
+
+#### The ReACT Pattern
+
+ReACT is a foundational agent design paradigm that separates agent logic into two interleaved phases:
+
+1. **Reasoning (R)**: The agent thinks about what to do next
+2. **Acting (A)**: The agent executes the selected action via tools
+
+**Why ReACT?**
+- ✅ **Transparent**: Every decision is reasoned before execution
+- ✅ **Interpretable**: See why the agent made each choice (in traces)
+- ✅ **Recoverable**: Failed actions can be recovered from
+- ✅ **Composable**: New tools can be added without changing agent logic
+
+#### Current Implementation
+
+The news-agent uses a **structured ReACT workflow** with predetermined phases:
+
+```mermaid
+graph LR
+    INIT["🔧 Initialize"]
+    R1["🧠 Reason:<br/>Which sources<br/>enabled?"]
+    A1["🔨 Act:<br/>Fetch data<br/>from sources"]
+    R2["🧠 Reason:<br/>Which items<br/>relevant?"]
+    A2["🔨 Act:<br/>Score &<br/>rank items"]
+    OUTPUT["📄 Output"]
+
+    INIT --> R1
+    R1 --> A1
+    A1 --> R2
+    R2 --> A2
+    A2 --> OUTPUT
+
+    style R1 fill:#fff9c4
+    style R2 fill:#fff9c4
+    style A1 fill:#c8e6c9
+    style A2 fill:#c8e6c9
+    style INIT fill:#e1f5ff
+    style OUTPUT fill:#fce4ec
+```
 
 **Key Methods:**
-- `run()`: Main entry point, manages the 5-step pipeline
-- `_collect_github_data()`: Fetches and processes GitHub trending repos
-- `_collect_hn_data()`: Fetches and filters HN posts
-- `_score_and_rank()`: Applies relevance scoring and ranking
+- `run()`: Main orchestrator, implements ReACT loop
+  - Reasoning: "Which sources are enabled?"
+  - Acting: Call data collection tools
+  - Reasoning: "What's relevant?"
+  - Acting: Call scoring/ranking tools
+
+- `_collect_github_data()`: Execute GitHub data collection tool
+  - Calls `fetch_github_trending()` from tool registry
+  - Applies result processing
+
+- `_collect_hn_data()`: Execute HN data collection tool
+  - Calls `fetch_hn_posts()` then `score_relevance()` from tool registry
+  - Chains tool results together
+
+#### Tool Registry Pattern
+
+Tools are registered as callable functions with standardized signatures:
+
+```python
+class ToolRegistry:
+    def _register_tools(self) -> dict[str, Callable]:
+        return {
+            "fetch_github_trending": self._fetch_github_trending,  # → API call
+            "fetch_hn_posts": self._fetch_hn_posts,                # → API call
+            "score_relevance": self._score_relevance,              # → LLM call
+            "rank_items": self._rank_items,                        # → Ranking
+        }
+
+# Agent uses tools via:
+result = self.tools.tools["fetch_github_trending"](no_cache=True)
+```
+
+Each tool returns `{"source": "...", "data": [...]}` for consistency.
+
+#### Types of Reasoning in the Agent
+
+**Type 1: Configuration-Based Reasoning** (deterministic)
+```python
+# Agent thinks: "Is GitHub source enabled in config?"
+if self.config.sources.github.enabled:
+    github_data = self._collect_github_data(no_cache)
+```
+
+**Type 2: LLM-Based Reasoning** (stochastic, via tools)
+```python
+# Agent asks LLM: "How relevant is this post to AI/ML?"
+scored_posts = self.tools.tools["score_relevance"](posts, topics)
+# LLM returns relevance scores 0-10 for each post
+```
 
 **Tracing:**
-- Root trace: `news_agent_run`
-- Phase traces: `collect_github_data`, `collect_hn_data`, `score_relevance`, `rank_items`
+- Root trace: `news_agent_run` - entire ReACT workflow
+- Phase traces: `collect_github_data`, `collect_hn_data` - reasoning+acting pairs
+- Tool traces: `score_relevance` - LLM-based reasoning
+- Output traces: `rank_items` - action execution
+
+---
+
+### Claude Agent SDK Integration
+
+#### Current Status
+
+The news-agent architecture is **ready for Claude Agent SDK integration**. Currently uses manual ReACT implementation. The TODO comment in code marks the integration point:
+
+```python
+# In src/news_agent/agent/react_agent.py, line 24:
+# TODO: Initialize Claude Agent SDK client
+# This will use the SDK's MCP integration
+```
+
+#### Why Claude Agent SDK?
+
+The SDK provides **first-class support** for the agent patterns we're manually implementing:
+
+1. **Standardized Tool Definitions** - JSON schema-based tool registration
+2. **MCP Integration** - Native Model Context Protocol for extending capabilities
+3. **Tool Loop Management** - Automatic handling of tool invocation loop
+4. **Extended Thinking** - Support for multi-step reasoning
+5. **Built-in Error Handling** - Standardized recovery from tool failures
+6. **Automatic Tracing** - Native integration with observability platforms
+
+#### Migration Path
+
+**Phase 1: Today (Current State)**
+- Manual ReACT implementation
+- Tool Registry pattern (custom)
+- LiteLLM for provider abstraction
+- LangSmith for observability
+
+```python
+# News Agent orchestrates manually
+agent = NewsAgent(config, tool_registry, llm_provider)
+results = agent.run()  # Manual control flow
+```
+
+**Phase 2: Agent SDK Integration (Next)**
+- Replace manual ReACT with SDK tool-use loop
+- Convert ToolRegistry to SDK tool definitions
+- Leverage SDK's built-in reasoning capabilities
+
+```python
+# Future: Using Claude Agent SDK
+from anthropic import Anthropic
+
+client = Anthropic()
+tools = [
+    {
+        "name": "fetch_github_trending",
+        "description": "Fetch trending GitHub repositories",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "time_range": {"type": "string", "enum": ["daily", "weekly", "monthly"]}
+            }
+        }
+    },
+    {
+        "name": "fetch_hn_posts",
+        "description": "Fetch Hacker News posts by endpoint",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "endpoint": {"type": "string", "enum": ["newest", "top", "show"]}
+            }
+        }
+    },
+    # ... more tools
+]
+
+# SDK handles the reasoning + tool-use loop
+messages = [
+    {
+        "role": "user",
+        "content": "Aggregate and analyze trending content from GitHub and Hacker News"
+    }
+]
+
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=4096,
+    tools=tools,
+    messages=messages
+)
+
+# SDK automatically handles:
+# 1. Agent reasoning about which tool to call
+# 2. Tool invocation with user-provided handlers
+# 3. Response parsing and continuation
+# 4. Multi-turn tool loops until completion
+```
+
+**Phase 3: Full MCP Integration (Future)**
+- Connect to official GitHub MCP server
+- Connect to official Hacker News MCP server
+- Dynamic tool discovery and loading
+
+```python
+# No need for manual GitHub/HN clients
+# MCP servers provide tools directly to SDK
+```
+
+#### Tool Registry → SDK Tool Mapping
+
+**Current Tool Registry:**
+```python
+{
+    "fetch_github_trending": func,     # Returns ~25 repos
+    "fetch_hn_posts": func,             # Returns ~100 posts
+    "score_relevance": func,            # Adds scores via LLM
+    "rank_items": func,                 # Ranks by strategy
+}
+```
+
+**Will become SDK Tools:**
+```python
+[
+    {
+        "name": "fetch_github_trending",
+        "description": "Fetch trending GitHub repos with optional filtering",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "time_range": {
+                    "type": "string",
+                    "enum": ["daily", "weekly", "monthly"],
+                    "description": "Time window for trends"
+                },
+                "language_filter": {
+                    "type": "string",
+                    "description": "Optional language filter (Python, Rust, etc)"
+                }
+            },
+            "required": ["time_range"]
+        }
+    },
+    # ... more tool definitions with full schema
+]
+
+# SDK automatically:
+# - Validates inputs against schema before calling
+# - Calls your handler function with validated inputs
+# - Manages the tool-use loop
+# - Retries on errors with backoff
+# - Streams results back to agent reasoning
+```
+
+#### Integration Benefits
+
+**For ReACT Pattern:**
+- SDK implements the tool-use loop → no manual loop control
+- Agent focuses purely on business logic
+- Cleaner separation of reasoning from orchestration
+
+**For Code Quality:**
+- Fewer lines of orchestration code
+- Less state management (SDK handles it)
+- Standardized error recovery
+
+**For Debugging:**
+- Built-in trace context for each tool call
+- Automatic logging of tool inputs/outputs
+- Native integration with LangSmith/OpenTelemetry
+
+**For Extensibility:**
+- Add tools by defining JSON schema + handler function
+- No changes to agent orchestration code
+- Tools can be dynamic (loaded at runtime via MCP)
+
+#### Code Locations for SDK Integration
+
+1. **src/news_agent/agent/react_agent.py** (line 24)
+   - Initialize `Anthropic()` client
+   - Define tools with JSON schemas
+   - Implement tool use loop
+
+2. **src/news_agent/agent/tools.py**
+   - Convert ToolRegistry to SDK tool definitions
+   - Keep handler functions as-is (slight signature updates)
+
+3. **src/news_agent/llm/provider.py**
+   - Can be simplified (SDK handles provider selection)
+   - Or kept for multi-provider support via SDK
+
+4. **src/news_agent/mcp/** (future)
+   - Replace with MCP client integration
+   - Load GitHub/HN servers dynamically
+
+---
 
 ### 2. LLM Provider (src/news_agent/llm/provider.py)
 
@@ -356,100 +668,73 @@ return data
 
 ### Complete Request Flow
 
-```
-┌────────────────────────────────────────────────────────────┐
-│ 1. User runs: news-agent --depth deep --no-cache           │
-└────────────────┬───────────────────────────────────────────┘
-                 │
-                 ▼
-         ┌───────────────┐
-         │ Load config   │ Load TOML, apply overrides
-         └───────┬───────┘
-                 │
-                 ▼
-         ┌───────────────────────┐
-         │ Initialize components │
-         │ - LLM Provider        │
-         │ - Cache Manager       │
-         │ - Data Clients        │
-         └───────┬───────────────┘
-                 │
-          ┌──────┴──────┐
-          │             │
-          ▼             ▼
-    ┌──────────┐  ┌───────────┐
-    │ GitHub   │  │Hacker     │
-    │Trending  │  │News       │
-    │(REST API)│  │(Firebase) │
-    └────┬─────┘  └─────┬─────┘
-         │              │
-         ▼              ▼
-    ┌──────────┐  ┌───────────┐
-    │ ~25 repos│  │ ~100 posts│
-    └────┬─────┘  └─────┬─────┘
-         │              │
-         └──────┬───────┘
-                │
-                ▼
-         ┌────────────────┐
-         │ Filter/Process │ Remove duplicates, validate
-         └────────┬───────┘
-                  │
-         ┌────────┴────────┐
-         │                 │
-         ▼                 ▼
-    ┌─────────────┐  ┌──────────────┐
-    │ Score repos │  │ Score posts  │ (via LLM)
-    │ for AI/ML   │  │ for relevance │ (batch 5 items)
-    │ relevance   │  │              │
-    └──────┬──────┘  └────────┬─────┘
-           │                  │
-           └──────────┬───────┘
-                      │
-                      ▼
-              ┌───────────────┐
-              │ Combine scores│ Apply ranking strategy
-              │ & rank items  │ (popularity/relevance/balanced)
-              └───────┬───────┘
-                      │
-                      ▼
-          ┌───────────────────┐
-          │ Format & display  │
-          │ - Terminal tables │
-          │ - Markdown report │
-          └───────┬───────────┘
-                  │
-                  ▼
-          ┌───────────────────┐
-          │ Save markdown to  │
-          │ reports/          │
-          │ report-YYYY-MM-DD │
-          └───────────────────┘
+```mermaid
+graph TD
+    INPUT["📥 User Command<br/>news-agent --depth deep"]
+    CONFIG["⚙️ Load & Validate<br/>config.toml"]
+    INIT["🔧 Initialize<br/>Components"]
+    GH["🔗 GitHub API<br/>~25 repos"]
+    HN["📰 HN API<br/>~100 posts"]
+    COLLECT["📦 Collect Data<br/>Parallel"]
+    FILTER["🎯 Filter & Process<br/>Dedup, Validate"]
+    SCORE["⭐ Score Relevance<br/>via LLM"]
+    RANK["📊 Rank Items<br/>Apply strategy"]
+    FORMAT["📄 Format Output<br/>Tables & MD"]
+    SAVE["💾 Save Report<br/>reports/"]
+
+    INPUT --> CONFIG
+    CONFIG --> INIT
+    INIT --> GH
+    INIT --> HN
+    GH --> COLLECT
+    HN --> COLLECT
+    COLLECT --> FILTER
+    FILTER --> SCORE
+    SCORE --> RANK
+    RANK --> FORMAT
+    FORMAT --> SAVE
+
+    style INPUT fill:#e1f5ff
+    style CONFIG fill:#b3e5fc
+    style INIT fill:#81d4fa
+    style GH fill:#e8f5e9
+    style HN fill:#fff3e0
+    style COLLECT fill:#f3e5f5
+    style FILTER fill:#e1bee7
+    style SCORE fill:#ce93d8
+    style RANK fill:#ba68c8
+    style FORMAT fill:#fce4ec
+    style SAVE fill:#66bb6a
 ```
 
 ### Trace Hierarchy in LangSmith
 
 When telemetry is enabled (`LANGSMITH_API_KEY` set), the complete execution is traced:
 
-```
-news_agent_run (Root Trace) [Main workflow]
-├── collect_github_data [Phase 1]
-│   ├── GitHub API call
-│   ├── JSON parsing
-│   └── Caching
-├── collect_hn_data [Phase 2]
-│   ├── HN API calls
-│   ├── Filtering logic
-│   └── Caching
-├── score_relevance [Phase 3]
-│   ├── Batch preparation
-│   └── llm_complete (Multiple calls)
-│       ├── Call 1: Score repos
-│       ├── Call 2: Score posts
-│       └── Call 3+: As needed
-└── rank_items [Phase 4]
-    ├── Ranking calculation
-    └── Output generation
+```mermaid
+graph TD
+    ROOT["📊 news_agent_run<br/>Root Trace"]
+    GH["🔗 collect_github_data<br/>Phase 1"]
+    HN["📰 collect_hn_data<br/>Phase 2"]
+    SCORE["⭐ score_relevance<br/>Phase 3"]
+    LLM1["🤖 llm_complete<br/>Call 1: Score repos"]
+    LLM2["🤖 llm_complete<br/>Call 2: Score posts"]
+    RANK["📊 rank_items<br/>Phase 4"]
+
+    ROOT --> GH
+    ROOT --> HN
+    ROOT --> SCORE
+    ROOT --> RANK
+    SCORE --> LLM1
+    SCORE --> LLM2
+
+    style ROOT fill:#e3f2fd
+    style GH fill:#c8e6c9
+    style HN fill:#fff3e0
+    style SCORE fill:#f3e5f5
+    style LLM1 fill:#e1bee7
+    style LLM2 fill:#e1bee7
+    style RANK fill:#fce4ec
 ```
 
 **What's Captured:**
