@@ -1,4 +1,4 @@
-.PHONY: help clean install build test lint format run venv
+.PHONY: help clean install build test lint format run venv langsmith
 
 help:
 	@echo "Available targets:"
@@ -11,6 +11,7 @@ help:
 	@echo "  make format     - Format code with black and ruff"
 	@echo "  make run        - Run the news-agent CLI"
 	@echo "  make dev        - Install in development mode"
+	@echo "  make langsmith  - Open LangSmith dashboard"
 
 venv:
 	uv venv
@@ -50,3 +51,7 @@ format:
 
 run:
 	news-agent --help
+
+langsmith:
+	@echo "Opening LangSmith dashboard for news-agent project..."
+	@open "https://smith.langchain.com/o/personal/projects/p/news-agent" || xdg-open "https://smith.langchain.com/o/personal/projects/p/news-agent" || echo "Please visit: https://smith.langchain.com"

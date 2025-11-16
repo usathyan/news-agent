@@ -6,6 +6,7 @@ AI-powered news aggregation agent that collects and analyzes content from GitHub
 
 - 🤖 **Multi-Provider LLM Support**: Works with Anthropic, OpenAI, OpenRouter, Ollama, Bedrock, Azure, and more via LiteLLM
 - 📊 **AI-Powered Analysis**: Relevance scoring, summarization, and intelligent ranking
+- 📈 **Built-in Telemetry**: LangSmith integration for observability and LLM tracing
 - 🔄 **Smart Caching**: TTL-based file caching with configurable expiration
 - 📝 **Professional Reports**: Markdown reports with rich terminal previews
 - ⚙️ **Highly Configurable**: TOML-based configuration with depth control
@@ -28,8 +29,10 @@ pip install -e ".[dev]"
 1. **Set up environment variables:**
 ```bash
 cp .env.example .env
-# Edit .env and add your API key:
-# ANTHROPIC_API_KEY=your_key_here
+# Edit .env and add your API keys:
+# ANTHROPIC_API_KEY=your_key_here (or OPENROUTER_API_KEY, etc.)
+# GITHUB_PAT=your_github_token (optional - for higher rate limits)
+# LANGSMITH_API_KEY=your_langsmith_key (optional - for telemetry)
 ```
 
 2. **Configure sources and preferences** (optional):
@@ -216,6 +219,11 @@ terminal_preview = true
 max_attempts = 3
 backoff_multiplier = 2
 graceful_degradation = true
+
+[telemetry]
+enabled = true                      # Enable/disable telemetry
+backend = "langsmith"               # langsmith, otel, or langfuse
+project_name = "news-agent"         # Project name in telemetry backend
 ```
 
 ### Analysis Depth Levels
@@ -231,6 +239,35 @@ graceful_degradation = true
 - **popularity**: Rank by stars/votes only
 - **relevance**: Rank by AI relevance score only
 - **balanced**: Weighted combination (default: 70% relevance, 30% popularity)
+
+### Telemetry & Observability
+
+The news agent includes built-in LangSmith integration for observability:
+
+**What's Tracked:**
+- All LLM calls (prompts, responses, token usage)
+- Relevance scoring decisions
+- API latency and performance metrics
+- Errors and retries
+
+**Viewing Traces:**
+```bash
+# Open LangSmith dashboard
+make langsmith
+
+# Or visit directly: https://smith.langchain.com
+```
+
+**Configuration:**
+- Set `LANGSMITH_API_KEY` in `.env` to enable telemetry
+- Traces appear in the "news-agent" project
+- Optional: Set `telemetry.enabled = false` in `config.toml` to disable
+
+**Benefits:**
+- Debug LLM responses and prompt engineering
+- Track token costs and usage patterns
+- Monitor performance and identify bottlenecks
+- Analyze relevance scoring accuracy
 
 ## Development
 

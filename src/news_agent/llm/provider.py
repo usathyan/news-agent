@@ -1,6 +1,7 @@
 import os
 import logging
 from typing import Any, List, Dict
+import litellm
 from litellm import completion
 from litellm.exceptions import (
     AuthenticationError,
@@ -41,6 +42,13 @@ class LLMProvider:
 
         # Store API key in instance variable instead of global environment
         self._api_key = api_key
+
+        # Configure LangSmith telemetry if API key is available
+        langsmith_key = os.getenv("LANGSMITH_API_KEY")
+        if langsmith_key:
+            litellm.success_callback = ["langsmith"]
+            logger.info("LangSmith telemetry enabled")
+
         logger.info(f"Initialized LLM provider: {config.provider} with model: {self.model}")
 
     def complete(

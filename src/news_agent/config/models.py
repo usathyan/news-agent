@@ -66,6 +66,12 @@ class RetryConfig(BaseModel):
     graceful_degradation: bool = True
 
 
+class TelemetryConfig(BaseModel):
+    enabled: bool = True
+    backend: Literal["langsmith", "otel", "langfuse"] = "langsmith"
+    project_name: str = "news-agent"
+
+
 class Config(BaseModel):
     llm: LLMConfig
     analysis: AnalysisConfig = Field(default_factory=AnalysisConfig)
@@ -74,3 +80,4 @@ class Config(BaseModel):
     caching: CachingConfig = Field(default_factory=CachingConfig)
     output: OutputConfig = Field(default_factory=OutputConfig)
     retry: RetryConfig = Field(default_factory=RetryConfig)
+    telemetry: TelemetryConfig = Field(default_factory=TelemetryConfig)

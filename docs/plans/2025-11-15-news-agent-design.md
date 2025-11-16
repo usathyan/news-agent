@@ -1,7 +1,7 @@
 # News Agent Design Document
 
 **Date:** 2025-11-15
-**Status:** ✅ Implemented and Operational (Phase 2 Complete)
+**Status:** ✅ Implemented and Operational (Phase 2 Complete + Telemetry)
 
 ## Overview
 
@@ -16,6 +16,7 @@ A CLI-based news aggregation agent that collects, analyzes, and reports on conte
 4. Support multiple LLM providers via LiteLLM
 
 **Future Enhancements:**
+- Advanced telemetry: Custom instrumentation for agent decision points
 - Social media mention analysis (Reddit, X.com)
 - Scheduled daily execution
 - Email report delivery
@@ -335,6 +336,7 @@ news-agent/
 - CLI refinements
 
 ### Future: Enhancements
+- Custom telemetry instrumentation (agent decision spans, custom metrics)
 - Social media analysis (Reddit, X.com)
 - Scheduling (cron/systemd integration)
 - Email delivery
@@ -344,8 +346,8 @@ news-agent/
 ## Success Criteria
 
 **MVP is complete when:**
-1. ✅ Can fetch GitHub trending repos via MCP
-2. ✅ Can fetch HN posts via MCP
+1. ✅ Can fetch GitHub trending repos via API
+2. ✅ Can fetch HN posts via API
 3. ✅ AI filters HN content for AI/ML/GenAI relevance
 4. ✅ Generates top 25 ranked results from each source
 5. ✅ Displays rich terminal preview
@@ -354,12 +356,14 @@ news-agent/
 8. ✅ Configurable via TOML
 9. ✅ Handles errors gracefully with retry logic
 10. ✅ Smart caching with override flag
+11. ✅ LangSmith telemetry integration for observability
 
 ## Notes
 
 - API keys provided via environment variables (`.env`)
-- GitHub MCP server is remotely hosted (no local setup required)
-- HN MCP may need custom modifications or local hosting
-- Social media analysis deferred to post-MVP
-- Email delivery deferred to post-MVP
-- Scheduling deferred to post-MVP
+- GitHub and Hacker News use direct API integration (no MCP required)
+- LangSmith telemetry enabled via LANGSMITH_API_KEY environment variable
+- Custom telemetry instrumentation deferred to future enhancement
+- Social media analysis deferred to future enhancement
+- Email delivery deferred to future enhancement
+- Scheduling deferred to future enhancement
