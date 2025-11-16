@@ -1,6 +1,7 @@
 import os
 import logging
 from typing import Any, List, Dict
+import litellm
 from litellm import completion
 from litellm.exceptions import (
     AuthenticationError,
@@ -42,10 +43,11 @@ class LLMProvider:
         # Store API key in instance variable instead of global environment
         self._api_key = api_key
 
-        # LangSmith telemetry is enabled automatically via LANGSMITH_API_KEY environment variable
-        # No explicit callback configuration needed - LiteLLM detects and enables it automatically
+        # Configure LangSmith telemetry if API key is available
         if os.getenv("LANGSMITH_API_KEY"):
-            logger.info("LangSmith telemetry will be enabled via environment variable")
+            # Enable LiteLLM logging for LangSmith tracing (using modern approach)
+            os.environ["LITELLM_LOG"] = "DEBUG"
+            logger.info("LangSmith telemetry enabled - traces will be recorded")
 
         logger.info(f"Initialized LLM provider: {config.provider} with model: {self.model}")
 
