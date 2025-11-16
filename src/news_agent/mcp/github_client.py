@@ -39,13 +39,16 @@ class GitHubMCPClient:
     async def _fetch_trending_repos_async(self, time_range: str) -> list[dict[str, Any]]:
         """Async implementation to fetch trending repos"""
         try:
-            # Calculate date range for trending
+            # Calculate date range for pushed activity (more accurate for trending)
             days_map = {"daily": 1, "weekly": 7, "monthly": 30}
             days = days_map.get(time_range, 1)
             since_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
 
             # Build search query for trending repos
-            query = f"created:>{since_date} stars:>50 sort:stars"
+            # Use "pushed" instead of "created" to find recently active repos
+            # Stars threshold depends on time range
+            stars_threshold = 100 if days == 1 else (500 if days == 7 else 1000)
+            query = f"pushed:>{since_date} stars:>{stars_threshold} sort:stars"
 
             logger.info(f"Searching GitHub for: {query}")
 
@@ -61,7 +64,7 @@ class GitHubMCPClient:
                 response = await client.get(
                     "https://api.github.com/search/repositories",
                     params={
-                        "q": f"created:>{since_date} stars:>50",
+                        "q": f"pushed:>{since_date} stars:>{stars_threshold}",
                         "sort": "stars",
                         "order": "desc",
                         "per_page": 25
