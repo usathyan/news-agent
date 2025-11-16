@@ -45,7 +45,7 @@ cp .env.example .env
 
 ```bash
 # Run with default settings
-news-agent run
+news-agent
 
 # Dry run to preview what will be fetched
 news-agent --dry-run
@@ -63,11 +63,60 @@ news-agent --output ./my-report.md
 news-agent --verbose
 ```
 
+### Example Output
+
+**Running with default settings:**
+```bash
+$ news-agent
+⏳ Loading configuration...
+⏳ Initializing components...
+⏳ Running news agent...
+⏳ Generating markdown report...
+╭────────────────────────────────── Summary ───────────────────────────────────╮
+│ GitHub Repos: 0                                                              │
+│ HN Posts: 0                                                                  │
+│ Analysis Depth: medium                                                       │
+│ Report Saved: reports/report-2025-11-15.md                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+✓ Report saved to: reports/report-2025-11-15.md
+```
+
+**Dry run to preview configuration:**
+```bash
+$ news-agent --dry-run
+⏳ Loading configuration...
+⚠ Dry run mode - no data will be fetched
+⏳ Would fetch from sources: github, hackernews
+```
+
+**Viewing help:**
+```bash
+$ news-agent --help
+Usage: news-agent [OPTIONS]
+
+  Run the news agent to collect and analyze content
+
+Options:
+  --config PATH                   Path to configuration file
+  --output PATH                   Output file path (default:
+                                  reports/report-{date}.md)
+  --no-cache                      Force fetch fresh data, ignore cache
+  --depth [lightweight|medium|deep]
+                                  Analysis depth (overrides config)
+  --sources TEXT                  Comma-separated list of sources (e.g.,
+                                  github,hn)
+  --dry-run                       Show what would be fetched without running
+  --verbose                       Enable verbose logging
+  --help                          Show this message and exit.
+```
+
+> **Note:** The example above shows 0 results because MCP server integrations are pending. Once connected to actual GitHub and Hacker News MCP servers, the reports will contain real trending repositories, developer profiles, and filtered news posts with AI-generated summaries and relevance scores.
+
 ## CLI Reference
 
 ### Commands
 
-- `news-agent run` - Main command to run the news agent
+- `news-agent` - Main command to run the news agent
 
 ### Flags
 

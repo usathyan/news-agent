@@ -15,7 +15,7 @@ from news_agent.config.models import LLMConfig
 logger = logging.getLogger(__name__)
 
 # Supported LLM providers
-SUPPORTED_PROVIDERS = {"anthropic", "openai", "azure", "cohere", "bedrock"}
+SUPPORTED_PROVIDERS = {"anthropic", "openai", "azure", "cohere", "bedrock", "openrouter", "ollama"}
 
 
 class LLMProvider:
