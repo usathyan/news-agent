@@ -71,15 +71,42 @@ $ news-agent
 ⏳ Loading configuration...
 ⏳ Initializing components...
 ⏳ Running news agent...
+                          GitHub Trending Repositories
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Rank   ┃ Repository               ┃ Stars ┃ Forks ┃ Description              ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 1      │ raduacg/game-mechanics-… │   153 │    11 │ A list of 171 game       │
+│        │                          │       │       │ mechanics techniques...  │
+│ 2      │ SouzaFrontend/tisa       │   142 │     0 │ tisa is an emulator for  │
+│        │                          │       │       │ the Tiny ISA             │
+│ 3      │ hanakim3945/bl_sbx       │    63 │     8 │ itunesstored & bookassetd│
+│        │                          │       │       │ sbx escape               │
+└────────┴──────────────────────────┴───────┴───────┴──────────────────────────┘
+                        Hacker News - AI/ML/GenAI Topics
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┓
+┃ Rank   ┃ Title                                            ┃ Score ┃ Comments ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━┩
+│ 1      │ Solving a Million-Step LLM Task with Zero Errors │     2 │        0 │
+│ 2      │ Show HN: Gerbil – Open source desktop app for    │    36 │        0 │
+│        │ running LLMs...                                  │       │          │
+│ 3      │ Show HN: Tiny Diffusion – Character-level text   │   154 │        0 │
+│        │ diffusion m...                                   │       │          │
+└────────┴──────────────────────────────────────────────────┴───────┴──────────┘
 ⏳ Generating markdown report...
 ╭────────────────────────────────── Summary ───────────────────────────────────╮
-│ GitHub Repos: 0                                                              │
-│ HN Posts: 0                                                                  │
+│ GitHub Repos: 6                                                              │
+│ HN Posts: 10                                                                 │
 │ Analysis Depth: medium                                                       │
 │ Report Saved: reports/report-2025-11-15.md                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ✓ Report saved to: reports/report-2025-11-15.md
 ```
+
+**Real data from generated report:**
+- **GitHub**: 6 trending repositories (game mechanics, emulators, iOS exploits, UI libraries)
+- **Hacker News**: 10 AI/ML posts filtered by topic (LLM tools, diffusion models, AI systems)
+- **AI Analysis**: Relevance scoring and filtering applied
+- **Format**: Rich terminal tables + markdown report
 
 **Dry run to preview configuration:**
 ```bash
@@ -109,8 +136,6 @@ Options:
   --verbose                       Enable verbose logging
   --help                          Show this message and exit.
 ```
-
-> **Note:** The example above shows 0 results because MCP server integrations are pending. Once connected to actual GitHub and Hacker News MCP servers, the reports will contain real trending repositories, developer profiles, and filtered news posts with AI-generated summaries and relevance scores.
 
 ## CLI Reference
 
