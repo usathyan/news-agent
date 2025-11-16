@@ -3,6 +3,8 @@ name = "news-agent"
 version = "0.1.0"
 description = "AI-powered news aggregation agent with MCP integrations"
 requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "Umesh Bhatt", email = "umesh@8thcross.com"}]
 dependencies = [
     "anthropic>=0.18.0",
     "litellm>=1.30.0",
