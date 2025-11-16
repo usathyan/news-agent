@@ -24,7 +24,7 @@ class NewsAgent:
         # TODO: Initialize Claude Agent SDK client
         # This will use the SDK's MCP integration
 
-    @traceable
+    @traceable(name="news_agent_run")
     def run(self, no_cache: bool = False) -> dict[str, Any]:
         """Execute the news aggregation workflow
 
@@ -54,7 +54,7 @@ class NewsAgent:
 
         return results
 
-    @traceable
+    @traceable(name="collect_github_data")
     def _collect_github_data(self, no_cache: bool) -> list[dict[str, Any]]:
         """Collect and analyze GitHub trending data"""
         logger.info("🔍 Starting GitHub data collection...")
@@ -76,7 +76,7 @@ class NewsAgent:
         logger.info(f"📊 Selected top {len(top_repos)} repositories for report")
         return top_repos
 
-    @traceable
+    @traceable(name="collect_hn_data")
     def _collect_hn_data(self, no_cache: bool) -> list[dict[str, Any]]:
         """Collect and analyze Hacker News data"""
         logger.info("🔍 Starting Hacker News data collection...")

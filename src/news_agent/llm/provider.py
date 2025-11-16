@@ -52,7 +52,7 @@ class LLMProvider:
 
         logger.info(f"Initialized LLM provider: {config.provider} with model: {self.model}")
 
-    @traceable
+    @traceable(name="llm_complete")
     def complete(
         self,
         messages: List[Dict[str, Any]],
