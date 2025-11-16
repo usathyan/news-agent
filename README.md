@@ -1,16 +1,17 @@
 # News Agent
 
-AI-powered news aggregation agent that collects and analyzes content from GitHub Trending and Hacker News using Claude Agent SDK with MCP integrations.
+AI-powered news aggregation that automatically collects trending content from GitHub and Hacker News, analyzes it with AI, and generates daily reports.
 
-## Features
+## What It Does
 
-- 🤖 **Multi-Provider LLM Support**: Works with Anthropic, OpenAI, OpenRouter, Ollama, Bedrock, Azure, and more via LiteLLM
-- 📊 **AI-Powered Analysis**: Relevance scoring, summarization, and intelligent ranking
-- 📈 **Built-in Telemetry**: LangSmith integration for observability and LLM tracing
-- 🔄 **Smart Caching**: TTL-based file caching with configurable expiration
-- 📝 **Professional Reports**: Markdown reports with rich terminal previews
-- ⚙️ **Highly Configurable**: TOML-based configuration with depth control
-- 🛡️ **Production-Ready**: Comprehensive error handling, logging, and graceful degradation
+Runs an AI agent that:
+- Fetches today's trending GitHub repositories
+- Collects relevant AI/ML posts from Hacker News
+- Uses Claude to analyze and score relevance
+- Generates a beautiful markdown report with ranked results
+- Caches results so you're not fetching constantly
+
+Perfect for staying updated on tech trends without manually checking multiple sources.
 
 ## Quick Start
 
@@ -321,92 +322,6 @@ news_agent_run (Root)
 - 📊 **Relevance tuning**: Understand how AI scoring decisions are made
 - 🔄 **Workflow visibility**: See complete execution flow and dependencies
 
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run specific test file
-pytest tests/unit/test_cache_manager.py -v
-
-# Run with coverage
-pytest --cov=news_agent tests/
-```
-
-### Code Quality
-
-```bash
-# Format code
-make format
-
-# Run linters
-make lint
-
-# Type checking
-mypy src/news_agent
-```
-
-### Project Structure
-
-```
-news-agent/
-├── config.toml              # Main configuration
-├── .env                     # API keys (gitignored)
-├── src/news_agent/
-│   ├── __main__.py         # CLI entry point
-│   ├── cli.py              # Click-based CLI
-│   ├── agent/              # ReACT agent orchestration
-│   ├── analysis/           # Relevance, summarization, ranking
-│   ├── cache/              # TTL-based cache manager
-│   ├── config/             # TOML loader and Pydantic models
-│   ├── llm/                # LiteLLM provider wrapper
-│   ├── mcp/                # MCP client stubs (GitHub, HN)
-│   ├── output/             # Markdown and terminal output
-│   └── utils/              # Retry logic utilities
-├── tests/
-│   ├── unit/               # Unit tests (43 tests)
-│   └── integration/        # Integration tests (pending MCP)
-└── docs/plans/             # Design and implementation docs
-```
-
-## Current Implementation Status
-
-### ✅ Completed (Phase 2 - Data Integration)
-
-- Project structure and build system
-- Configuration system (TOML + Pydantic)
-- Multi-provider LLM integration (LiteLLM)
-- File-based caching with TTL
-- Exponential backoff retry logic
-- AI-powered relevance scoring
-- Depth-configurable summarization
-- Multi-strategy ranking (3 strategies)
-- Markdown report generation
-- Rich terminal UI with tables
-- Complete CLI with all flags
-- ReACT agent orchestration
-- **✨ GitHub API Integration**: Fetches trending repositories via GitHub REST API
-- **✨ Hacker News API Integration**: Fetches and filters posts via HN API
-
-**Test Coverage:** 43/45 tests passing (2 skipped - LLM-API-dependent)
-
-**Real Data Sources:** Both GitHub and Hacker News are integrated and working with live data!
-
-### ⏳ Pending (Future Enhancements)
-
-- **Social Media Analysis**: Reddit, X.com mention tracking
-- **Scheduling**: Automated daily runs
-- **Email Delivery**: Report distribution
-- **MCP Protocol Migration**: Optional migration to use MCP protocol for data sources
-
-### Current Data Source Approach
-
-The news agent uses direct API integrations:
-- **GitHub**: REST API (requires GITHUB_PAT for higher rate limits)
-- **Hacker News**: Firebase API (no authentication required)
 
 ## Troubleshooting
 
@@ -435,15 +350,9 @@ news-agent --no-cache
 rm -rf .cache/news-agent/
 ```
 
-## Contributing
+## Need Help?
 
-This project follows strict TDD and uses subagent-driven development:
-1. Write tests first
-2. Watch them fail
-3. Implement to pass
-4. Code review before merging
-
-See `docs/plans/` for architecture and implementation details.
+**For developers**: See `docs/DEVELOPER_NOTES.md` for architecture, how it works, and how to contribute.
 
 ## License
 
